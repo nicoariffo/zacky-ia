@@ -166,3 +166,92 @@ async def generate_qa_report_endpoint(request: QAReportRequest) -> dict[str, Any
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"QA report failed: {e}")
+
+
+# ========== Semana 2: Embeddings + Clustering ==========
+
+
+class EmbeddingsRequest(BaseModel):
+    """Request model for embeddings endpoint."""
+
+    limit: int | None = None
+    reprocess: bool = False
+
+
+class ClusteringRequest(BaseModel):
+    """Request model for clustering endpoint."""
+
+    limit: int | None = None
+    min_cluster_size: int | None = None
+
+
+class LabelingRequest(BaseModel):
+    """Request model for labeling endpoint."""
+
+    limit_clusters: int | None = None
+
+
+@app.post("/intents/embeddings")
+async def run_embeddings_endpoint(request: EmbeddingsRequest) -> dict[str, Any]:
+    """Generate embeddings for clean tickets."""
+    from src.intents.embeddings import run_embeddings
+
+    try:
+        result = run_embeddings(limit=request.limit, reprocess=request.reprocess)
+        return {
+            "status": "completed",
+            "message": f"Embeddings generated: {result['processed']} tickets",
+            **result,
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Embeddings failed: {e}")
+
+
+@app.post("/intents/clustering")
+async def run_clustering_endpoint(request: ClusteringRequest) -> dict[str, Any]:
+    """Run UMAP + HDBSCAN clustering on embeddings."""
+    from src.intents.clustering import run_clustering
+
+    try:
+        result = run_clustering(
+            limit=request.limit,
+            min_cluster_size=request.min_cluster_size,
+        )
+        return {
+            "status": "completed",
+            "message": f"Clustering complete: {result.get('n_clusters', 0)} clusters found",
+            **result,
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Clustering failed: {e}")
+
+
+@app.post("/intents/labeling")
+async def run_labeling_endpoint(request: LabelingRequest) -> dict[str, Any]:
+    """Generate labels for clusters using LLM."""
+    from src.intents.labeling import run_labeling
+
+    try:
+        result = run_labeling(limit_clusters=request.limit_clusters)
+        return {
+            "status": "completed",
+            "message": f"Labeling complete: {result['labeled']} clusters labeled",
+            **result,
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Labeling failed: {e}")
+
+
+@app.get("/intents/summary")
+async def get_intents_summary() -> dict[str, Any]:
+    """Get summary of labeled intents."""
+    from src.intents.labeling import get_intent_summary
+
+    try:
+        intents = get_intent_summary(limit=20)
+        return {
+            "status": "success",
+            "intents": intents,
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get intents: {e}")
