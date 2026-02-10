@@ -287,7 +287,7 @@ def main() -> None:
             print(f"    {intent['description']}")
     else:
         stats = run_labeling(limit_clusters=args.limit_clusters)
-        print(f"\n=== Labeling Complete ===")
+        print("\n=== Labeling Complete ===")
         print(f"Total clusters: {stats['total_clusters']}")
         print(f"Labeled: {stats['labeled']}")
         print(f"Errors: {stats['errors']}")

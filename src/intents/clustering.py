@@ -290,7 +290,7 @@ def main() -> None:
         min_cluster_size=args.min_cluster_size,
     )
 
-    print(f"\n=== Clustering Complete ===")
+    print("\n=== Clustering Complete ===")
     print(f"Total tickets: {stats.get('total_tickets', 0)}")
     print(f"Clusters found: {stats.get('n_clusters', 0)}")
     print(f"Noise points: {stats.get('noise_count', 0)}")

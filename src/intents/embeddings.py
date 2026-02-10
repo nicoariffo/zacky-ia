@@ -102,7 +102,6 @@ def run_embeddings(
 
     processed = 0
     errors = 0
-    total_tokens = 0
 
     # Process in batches
     for i in range(0, total_tickets, BATCH_SIZE):
@@ -175,7 +174,7 @@ def main() -> None:
     args = parser.parse_args()
 
     stats = run_embeddings(limit=args.limit, reprocess=args.reprocess)
-    print(f"\n=== Embedding Generation Complete ===")
+    print("\n=== Embedding Generation Complete ===")
     print(f"Processed: {stats['processed']}")
     print(f"Errors: {stats['errors']}")
 
