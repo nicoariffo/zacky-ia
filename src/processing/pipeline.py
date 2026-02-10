@@ -8,7 +8,7 @@ import structlog
 from google.cloud import bigquery
 
 from src.config import get_settings
-from src.processing.cleaner import CleanedTicket, TextCleaner
+from src.processing.cleaner import TextCleaner
 from src.processing.pii_redactor import PIIRedactor
 
 logger = structlog.get_logger()

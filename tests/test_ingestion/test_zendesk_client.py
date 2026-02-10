@@ -1,8 +1,6 @@
 """Tests for Zendesk client."""
 
-from datetime import datetime, timezone
-
-import pytest
+from datetime import UTC, datetime
 
 from src.ingestion.zendesk_client import Ticket
 
@@ -20,8 +18,8 @@ class TestTicket:
                 {"id": 1, "body": "Comment 1", "author_id": 100, "public": True},
                 {"id": 2, "body": "Comment 2", "author_id": 200, "public": False},
             ],
-            created_at=datetime(2024, 1, 15, 10, 30, 0, tzinfo=timezone.utc),
-            updated_at=datetime(2024, 1, 16, 14, 0, 0, tzinfo=timezone.utc),
+            created_at=datetime(2024, 1, 15, 10, 30, 0, tzinfo=UTC),
+            updated_at=datetime(2024, 1, 16, 14, 0, 0, tzinfo=UTC),
             tags=["tag1", "tag2"],
             channel="email",
             assignee_id=999,
@@ -52,8 +50,8 @@ class TestTicket:
             subject=None,
             description=None,
             comments=[],
-            created_at=datetime(2024, 1, 15, 10, 30, 0, tzinfo=timezone.utc),
-            updated_at=datetime(2024, 1, 16, 14, 0, 0, tzinfo=timezone.utc),
+            created_at=datetime(2024, 1, 15, 10, 30, 0, tzinfo=UTC),
+            updated_at=datetime(2024, 1, 16, 14, 0, 0, tzinfo=UTC),
             tags=[],
             channel=None,
             assignee_id=None,
@@ -81,8 +79,8 @@ class TestTicket:
             comments=[
                 {"id": 1, "body": "Gracias por contactarnos 😊", "author_id": 100, "public": True},
             ],
-            created_at=datetime(2024, 1, 15, 10, 30, 0, tzinfo=timezone.utc),
-            updated_at=datetime(2024, 1, 16, 14, 0, 0, tzinfo=timezone.utc),
+            created_at=datetime(2024, 1, 15, 10, 30, 0, tzinfo=UTC),
+            updated_at=datetime(2024, 1, 16, 14, 0, 0, tzinfo=UTC),
             tags=["devolución", "español"],
             channel="email",
             assignee_id=None,

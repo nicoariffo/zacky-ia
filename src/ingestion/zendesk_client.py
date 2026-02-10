@@ -2,9 +2,10 @@
 
 import json
 import time
+from collections.abc import Generator
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Generator
+from typing import Any
 
 import httpx
 import structlog
