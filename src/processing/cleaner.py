@@ -4,10 +4,10 @@ import html
 import json
 import re
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 
 
-class Channel(str, Enum):
+class Channel(StrEnum):
     EMAIL = "email"
     SOCIAL = "social"
     WEB = "web"
