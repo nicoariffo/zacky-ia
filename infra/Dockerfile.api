@@ -7,14 +7,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy dependency files
-COPY pyproject.toml .
+# Copy dependency files and README (required by pyproject.toml)
+COPY pyproject.toml README.md ./
+
+# Copy source code first (needed for editable install)
+COPY src/ src/
 
 # Install Python dependencies
-RUN pip install --no-cache-dir -e .
+RUN pip install --no-cache-dir .
 
-# Copy application code
-COPY src/ src/
+# Copy prompts
 COPY prompts/ prompts/
 
 # Expose port
