@@ -186,14 +186,18 @@ def run_labeling(
             label = generate_cluster_label(openai_client, examples)
 
             # Prepare row for BigQuery
+            import time
+
+            now = time.strftime("%Y-%m-%d %H:%M:%S")
             row = {
-                "intent_id": cluster_id,
+                "intent_id": str(cluster_id),
                 "cluster_id": cluster_id,
                 "name": label["name"],
                 "description": label["description"],
                 "volume": stats["volume"],
-                "avg_distance": stats["avg_distance"],
                 "status": "pending",  # Requires human validation
+                "created_at": now,
+                "updated_at": now,
             }
 
             # Insert to BigQuery
