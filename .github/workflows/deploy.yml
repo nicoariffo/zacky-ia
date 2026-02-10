@@ -9,7 +9,6 @@ env:
   PROJECT_ID: zacky-cloud-services
   REGION: us-central1
   API_SERVICE: zacky-api
-  UI_SERVICE: zacky-ui
 
 jobs:
   test:
@@ -77,45 +76,6 @@ jobs:
             --set-secrets "API_KEY=API_KEY:latest" \
             --service-account zacky-app@${{ env.PROJECT_ID }}.iam.gserviceaccount.com
 
-  deploy-ui:
-    needs: deploy-api
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Google Auth
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
-
-      - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@v2
-
-      - name: Configure Docker
+      - name: Show API URL
         run: |
-          gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev
-
-      - name: Get API URL
-        id: api-url
-        run: |
-          API_URL=$(gcloud run services describe ${{ env.API_SERVICE }} --region ${{ env.REGION }} --format 'value(status.url)')
-          echo "api_url=$API_URL" >> $GITHUB_OUTPUT
-
-      - name: Build and Push UI Image
-        run: |
-          docker build -f infra/Dockerfile.ui -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/zacky/${{ env.UI_SERVICE }}:${{ github.sha }} .
-          docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/zacky/${{ env.UI_SERVICE }}:${{ github.sha }}
-
-      - name: Deploy UI to Cloud Run
-        run: |
-          gcloud run deploy ${{ env.UI_SERVICE }} \
-            --image ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/zacky/${{ env.UI_SERVICE }}:${{ github.sha }} \
-            --region ${{ env.REGION }} \
-            --platform managed \
-            --allow-unauthenticated \
-            --set-env-vars "API_URL=${{ steps.api-url.outputs.api_url }}" \
-            --service-account zacky-app@${{ env.PROJECT_ID }}.iam.gserviceaccount.com
+          gcloud run services describe ${{ env.API_SERVICE }} --region ${{ env.REGION }} --format 'value(status.url)'
