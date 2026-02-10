@@ -253,7 +253,6 @@ def get_intent_summary(
             name,
             description,
             volume,
-            avg_distance,
             status
         FROM `{settings.gcp_project_id}.features.intents`
         ORDER BY volume DESC
