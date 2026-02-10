@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: infra/Dockerfile.api
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    volumes:
+      - ./src:/app/src
+      - ./prompts:/app/prompts
+    depends_on:
+      - postgres
+    networks:
+      - zacky-network
+
+  ui:
+    build:
+      context: .
+      dockerfile: infra/Dockerfile.ui
+    ports:
+      - "8501:8501"
+    env_file:
+      - .env
+    environment:
+      - API_URL=http://api:8000
+    volumes:
+      - ./src/ui:/app/src/ui
+    depends_on:
+      - api
+    networks:
+      - zacky-network
+
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: zacky
+      POSTGRES_PASSWORD: zacky_dev
+      POSTGRES_DB: zacky_local
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - zacky-network
+
+volumes:
+  postgres_data:
+
+networks:
+  zacky-network:
+    driver: bridge
