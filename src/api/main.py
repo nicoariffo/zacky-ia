@@ -32,6 +32,7 @@ class BackfillRequest(BaseModel):
 
     start_date: str | None = None
     resume: bool = True
+    limit: int | None = None  # Limit number of tickets (for testing)
 
 
 class PipelineRequest(BaseModel):
@@ -90,7 +91,7 @@ async def test_zendesk_connection() -> dict[str, Any]:
 async def run_backfill_endpoint(
     request: BackfillRequest,
     background_tasks: BackgroundTasks,
-) -> dict[str, str]:
+) -> dict[str, Any]:
     """Trigger backfill job to ingest historical tickets from Zendesk."""
     from src.ingestion.backfill import run_backfill
 
@@ -103,34 +104,53 @@ async def run_backfill_endpoint(
                 status_code=400, detail="Invalid date format. Use YYYY-MM-DD"
             )
 
-    # Run in background to avoid timeout
-    background_tasks.add_task(run_backfill, start_time, request.resume)
-
-    return {
-        "status": "started",
-        "message": "Backfill job started in background",
-        "start_date": request.start_date,
-        "resume": str(request.resume),
-    }
+    # Run synchronously if limit is set (for testing), otherwise background
+    if request.limit:
+        try:
+            result = run_backfill(start_time, request.resume, request.limit)
+            return {
+                "status": "completed",
+                "message": f"Backfill completed: {result['total_processed']} tickets",
+                "total_processed": result["total_processed"],
+            }
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Backfill failed: {e}")
+    else:
+        background_tasks.add_task(run_backfill, start_time, request.resume, None)
+        return {
+            "status": "started",
+            "message": "Backfill job started in background",
+            "start_date": request.start_date,
+            "resume": str(request.resume),
+        }
 
 
 @app.post("/processing/pipeline")
 async def run_pipeline_endpoint(
     request: PipelineRequest,
     background_tasks: BackgroundTasks,
-) -> dict[str, str]:
+) -> dict[str, Any]:
     """Trigger processing pipeline to clean and redact PII from tickets."""
     from src.processing.pipeline import run_pipeline
 
-    # Run in background to avoid timeout
-    background_tasks.add_task(run_pipeline, request.limit, request.reprocess)
-
-    return {
-        "status": "started",
-        "message": "Pipeline started in background",
-        "limit": str(request.limit) if request.limit else "all",
-        "reprocess": str(request.reprocess),
-    }
+    # Run synchronously if limit is set (for testing), otherwise background
+    if request.limit:
+        try:
+            result = run_pipeline(request.limit, request.reprocess)
+            return {
+                "status": "completed",
+                "message": f"Pipeline completed: {result['processed']} tickets",
+                **result,
+            }
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Pipeline failed: {e}")
+    else:
+        background_tasks.add_task(run_pipeline, None, request.reprocess)
+        return {
+            "status": "started",
+            "message": "Pipeline started in background",
+            "reprocess": str(request.reprocess),
+        }
 
 
 @app.post("/processing/qa-report")

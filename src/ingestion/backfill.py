@@ -56,7 +56,8 @@ def insert_tickets_to_bq(
 def run_backfill(
     start_time: datetime | None = None,
     resume: bool = True,
-) -> None:
+    limit: int | None = None,
+) -> dict[str, int]:
     """
     Run the backfill job to ingest historical tickets.
 
@@ -64,6 +65,10 @@ def run_backfill(
         start_time: Optional start time for the backfill. If not provided and
                    resume=True, will resume from last checkpoint.
         resume: Whether to resume from the last checkpoint.
+        limit: Optional limit on number of tickets to ingest.
+
+    Returns:
+        Dict with processing statistics.
     """
     settings = get_settings()
     table_id = f"{settings.gcp_project_id}.raw.tickets"
@@ -106,6 +111,11 @@ def run_backfill(
                 )
                 batch = []
 
+                # Check limit
+                if limit and total_processed >= limit:
+                    logger.info("Reached limit", limit=limit)
+                    break
+
         # Insert remaining tickets
         if batch:
             insert_tickets_to_bq(bq_client, table_id, batch)
@@ -116,6 +126,8 @@ def run_backfill(
         "Backfill complete",
         total_tickets=total_processed,
     )
+
+    return {"total_processed": total_processed}
 
 
 def main() -> None:
