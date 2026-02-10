@@ -236,7 +236,7 @@ def run_clustering(
             "ticket_id": int(ticket_id),
             "cluster_id": int(label),
             "distance_to_centroid": float(dist),
-            "is_noise": label == -1,
+            "is_noise": bool(label == -1),
             "umap_x": float(embeddings_viz[i, 0]),
             "umap_y": float(embeddings_viz[i, 1]),
             "created_at": time.strftime("%Y-%m-%d %H:%M:%S"),
